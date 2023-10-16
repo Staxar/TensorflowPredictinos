@@ -1,7 +1,7 @@
 "use client";
 import Image, { StaticImageData } from "next/image";
 import * as mobilenet from "@tensorflow-models/mobilenet";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, Suspense, useEffect, useState } from "react";
 import "@tensorflow/tfjs-backend-cpu";
 import "@tensorflow/tfjs-backend-webgl";
 import image from "../../public/cup.jpg";
@@ -28,21 +28,24 @@ export default function Home() {
     async function run() {
       const version = 2 as mobilenet.MobileNetVersion;
       const alpha = 0.5 as mobilenet.MobileNetAlpha;
-      const img = document.getElementById("image");
+      const img = document.getElementById("image") as HTMLImageElement;
       const model = await mobilenet.load({ version, alpha });
 
-      const prediction = await model.classify(img ? img : image);
+      const prediction = await model.classify(img);
       setPredictions(prediction);
     }
 
     run();
   }, [pickedImage]);
+
+  function Loading() {
+    return <h2>🌀 Loading...</h2>;
+  }
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
+        <p className="sfixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
+          <code className="font-mono font-bold">Image Prediction</code>
         </p>
         <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
           <a
@@ -64,7 +67,7 @@ export default function Home() {
         </div>
       </div>
 
-      <div className="">
+      <div className="flex flex-col gap-4">
         <div className="">
           Choose image to precit:{" "}
           <input type="file" onChange={handleImageChange} />
@@ -77,13 +80,18 @@ export default function Home() {
           width={500}
           height={500}
         />
-        <div className="">
-          {predictions?.map((item) => (
-            <div className="" key={item.className}>
-              <h2>{item.className}</h2>
-              <h2>{item.probability}</h2>
-            </div>
-          ))}
+        <div className="flex flex-col gap-4 py-4">
+          <h1 className="underline text-4xl">Predictions: </h1>
+          <Suspense fallback={<Loading />}>
+            {predictions?.map((item) => (
+              <div className="" key={item.className}>
+                <h2>
+                  Classification: <b>{item.className}</b>
+                </h2>
+                <h2>Probability: {item.probability}</h2>
+              </div>
+            ))}
+          </Suspense>
         </div>
       </div>
 
